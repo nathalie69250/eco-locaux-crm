@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco-Locaux CRM</title>
+<style>
+:root{--vert:#1f6f43;--vert-hover:#155330;--vert-clair:#e8f3ec;--fond:#F6F4EF;--surface:#FFFFFF;--texte:#1F2421;--gris:#6B7570;--bordure:#E2DFD6;--radius:10px;--ombre:0 2px 8px rgba(31,36,33,0.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--fond);color:var(--texte);min-height:100vh;font-size:15px}
+#page-accueil{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:28px}
+.logo{font-size:1.6rem;font-weight:800;color:var(--vert)}
+.accueil-titre{font-size:1.2rem;font-weight:600;text-align:center}
+.accueil-sous{color:var(--gris);font-size:0.88rem;text-align:center;margin-top:4px}
+.grille-com{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:480px}
+.btn-com{padding:13px 22px;background:var(--surface);border:2px solid var(--bordure);border-radius:var(--radius);font-size:0.93rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--texte);transition:all 0.15s;min-width:130px;text-align:center}
+.btn-com:hover{border-color:var(--vert);color:var(--vert);background:var(--vert-clair)}
+.actu{background:var(--surface);border:1px solid var(--bordure);border-radius:var(--radius);box-shadow:var(--ombre);padding:20px 24px;max-width:540px;width:100%}
+.actu-tit{font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--vert);margin-bottom:12px}
+.actu-item{padding:9px 0;border-bottom:1px solid var(--bordure)}
+.actu-item:last-child{border-bottom:none}
+.actu-item-h{font-size:0.86rem;font-weight:600;margin-bottom:3px}
+.actu-item-p{font-size:0.79rem;color:var(--gris);line-height:1.4}
+.actu-item-s{font-size:0.74rem;color:var(--vert);margin-top:2px}
+#app{display:none}
+nav{background:var(--surface);border-bottom:1px solid var(--bordure);padding:0 24px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;box-shadow:var(--ombre);flex-wrap:wrap}
+.nav-logo{font-weight:800;font-size:1rem;color:var(--vert);padding:14px 0}
+.nav-onglets{display:flex;gap:4px;flex:1}
+.nav-onglet{padding:15px 13px;font-size:0.87rem;font-weight:500;color:var(--gris);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:inherit;transition:all 0.15s;white-space:nowrap}
+.nav-onglet:hover{color:var(--texte)}
+.nav-onglet.actif{color:var(--vert);border-bottom-color:var(--vert);font-weight:600}
+.nav-com{font-size:0.8rem;background:var(--vert-clair);color:var(--vert);padding:5px 11px;border-radius:20px;font-weight:600;white-space:nowrap}
+.vue{display:none;padding:26px 22px;max-width:1200px;margin:0 auto}
+.vue.active{display:block}
+.form-recherche{background:var(--surface);border:1px solid var(--bordure);border-radius:var(--radius);box-shadow:var(--ombre);padding:22px;margin-bottom:20px;display:flex;gap:13px;align-items:flex-end;flex-wrap:wrap}
+.champ{flex:1;min-width:170px}
+.champ label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:4px}
+.champ select,.champ input{width:100%;padding:9px 11px;border:1px solid var(--bordure);border-radius:8px;font-size:0.88rem;font-family:inherit;color:var(--texte);background:var(--surface);transition:border-color 0.15s}
+.champ select:focus,.champ input:focus{outline:none;border-color:var(--vert);box-shadow:0 0 0 3px rgba(31,111,67,0.1)}
+.btn{padding:9px 18px;background:var(--vert);color:#fff;border:none;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:background 0.15s;white-space:nowrap}
+.btn:hover{background:var(--vert-hover)}
+.btn:disabled{background:#C9BFB3;cursor:not-allowed}
+.btn.sec{background:var(--vert-clair);color:var(--vert);border:1px solid var(--vert)}
+.btn.sec:hover{background:var(--vert);color:#fff}
+.btn.gris{background:#E5E7EB;color:var(--gris);border:none}
+.btn.gris:hover{background:#D1D5DB}
+.sp{width:13px;height:13px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{padding:9px 13px;border-radius:8px;font-size:0.85rem;margin-bottom:14px;display:none;line-height:1.5}
+.msg.vis{display:block}
+.msg.ok{background:#EAF5EF;color:var(--vert);border:1px solid #C9E6D7}
+.msg.ko{background:#FBEAEA;color:#9C2B2B;border:1px solid #F1C9C9}
+.msg.info{background:#FBF3EC;color:#8A4A20;border:1px solid #F0D9C5}
+.grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.carte{background:var(--surface);border:1px solid var(--bordure);border-radius:var(--radius);box-shadow:var(--ombre);padding:16px;display:flex;flex-direction:column;gap:5px}
+.carte-nom{font-weight:700;font-size:0.95rem}
+.carte-info{font-size:0.8rem;color:var(--gris);display:flex;align-items:flex-start;gap:4px;line-height:1.4}
+.carte-info a{color:var(--vert);text-decoration:none}
+.carte-info a:hover{text-decoration:underline}
+.badge-note{display:inline-flex;align-items:center;gap:3px;background:var(--vert-clair);color:var(--vert);font-size:0.75rem;font-weight:700;padding:2px 7px;border-radius:20px;width:fit-content}
+.badge-s{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.74rem;font-weight:600;width:fit-content}
+.prospects-haut{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.compteurs{display:flex;gap:8px;flex-wrap:wrap}
+.compteur{padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600}
+.filtres{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filtres select{padding:7px 10px;border:1px solid var(--bordure);border-radius:8px;font-size:0.83rem;font-family:inherit;background:var(--surface);cursor:pointer;color:var(--texte)}
+.scroll-haut{overflow-x:auto;overflow-y:hidden;height:14px;border-bottom:1px solid var(--bordure)}
+.scroll-inner{height:1px}
+.tw{overflow-x:auto;border-radius:var(--radius);box-shadow:var(--ombre);background:var(--surface);border:1px solid var(--bordure)}
+table{width:100%;border-collapse:collapse;min-width:880px;font-size:0.83rem}
+thead th{background:var(--fond);padding:10px 13px;text-align:left;font-size:0.76rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gris);border-bottom:1px solid var(--bordure);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--bordure);transition:background 0.1s}
+tbody tr:hover{background:var(--fond)}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 13px;vertical-align:middle}
+td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font-size:0.8rem;font-family:inherit;background:var(--surface);cursor:pointer;color:var(--texte);max-width:155px}
+.fond-modale{display:none;position:fixed;inset:0;background:rgba(31,36,33,0.45);z-index:200;align-items:center;justify-content:center;padding:18px}
+.fond-modale.ouverte{display:flex}
+.modale{background:var(--surface);border-radius:14px;box-shadow:0 8px 32px rgba(31,36,33,0.18);padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modale h2{font-size:1rem;margin-bottom:16px}
+.modale .champ{margin-bottom:12px}
+.modale .champ input,.modale .champ textarea{width:100%;padding:8px 10px;border:1px solid var(--bordure);border-radius:8px;font-size:0.86rem;font-family:inherit;color:var(--texte);resize:vertical;transition:border-color 0.15s}
+.modale .champ textarea{min-height:150px}
+.modale .champ input:focus,.modale .champ textarea:focus{outline:none;border-color:var(--vert);box-shadow:0 0 0 3px rgba(31,111,67,0.1)}
+.modale-actions{display:flex;gap:9px;margin-top:14px}
+.modale-actions .btn{flex:1;justify-content:center}
+.m-statut{font-size:0.82rem;margin-top:9px;padding:7px 10px;border-radius:7px;display:none}
+.m-statut.vis{display:block}
+.m-statut.ok{background:#EAF5EF;color:var(--vert)}
+.m-statut.ko{background:#FBEAEA;color:#9C2B2B}
+.m-statut.info{background:var(--fond);color:var(--gris)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--texte);color:#fff;padding:11px 16px;border-radius:9px;font-size:0.86rem;font-weight:500;z-index:300;opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none;max-width:300px}
+.toast.vis{opacity:1;transform:translateY(0)}
+.toast.ok{background:var(--vert)}
+.toast.ko{background:#DC2626}
+@media(max-width:600px){nav{padding:0 13px}.vue{padding:16px 13px}.form-recherche{flex-direction:column}.grille{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="page-accueil">
+  <div class="logo">⚡ Eco-Locaux</div>
+  <div>
+    <div class="accueil-titre">Bonjour, qui êtes-vous ?</div>
+    <div class="accueil-sous">Sélectionnez votre nom pour accéder au CRM</div>
+  </div>
+  <div class="grille-com">
+    <button class="btn-com" onclick="choisir('Marc D.')">Marc D.</button>
+    <button class="btn-com" onclick="choisir('Sophie L.')">Sophie L.</button>
+    <button class="btn-com" onclick="choisir('Antoine R.')">Antoine R.</button>
+    <button class="btn-com" onclick="choisir('Julie M.')">Julie M.</button>
+    <button class="btn-com" onclick="choisir('Pierre B.')">Pierre B.</button>
+  </div>
+  <div class="actu">
+    <div class="actu-tit">⚡ Actu énergie</div>
+    <div class="actu-item">
+      <div class="actu-item-h">Électricité pro : le kWh Tarif Bleu à 0,1583 € en 2026</div>
+      <div class="actu-item-p">Légère baisse de -0,83% pour les TPE après la fin de l'ARENH. Un argument concret pour vos prospects.</div>
+      <div class="actu-item-s">Février 2026 — Source : CRE / lab-energies.fr</div>
+    </div>
+    <div class="actu-item">
+      <div class="actu-item-h">CEE 6e période : +27% de primes disponibles dès 2026</div>
+      <div class="actu-item-p">L'enveloppe dépasse 8 milliards €/an pour financer les travaux d'efficacité énergétique.</div>
+      <div class="actu-item-s">1er janvier 2026 — Source : Décret n°2025-1048</div>
+    </div>
+    <div class="actu-item">
+      <div class="actu-item-h">Fin de l'ARENH : vigilance sur les offres de marché</div>
+      <div class="actu-item-p">Les TPE hors TRV sont exposées à une volatilité accrue. Un diagnostic devient urgent.</div>
+      <div class="actu-item-s">1er janvier 2026 — Source : Optima Énergie</div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <nav>
+    <div class="nav-logo">⚡ Eco-Locaux</div>
+    <div class="nav-onglets">
+      <button class="nav-onglet actif" onclick="vue('recherche',this)">🔍 Recherche</button>
+      <button class="nav-onglet" onclick="vue('prospects',this)">📋 Prospects</button>
+    </div>
+    <div class="nav-com" id="nav-com">—</div>
+  </nav>
+
+  <div id="vue-recherche" class="vue active">
+    <div class="form-recherche">
+      <div class="champ">
+        <label>Activité</label>
+        <select id="activite">
+          <option value="">Choisir...</option>
+          <option>Boulangerie</option><option>Pâtisserie</option><option>Boucherie</option>
+          <option>Poissonnerie</option><option>Restaurant</option><option>Pizzeria</option>
+          <option>Pressing</option><option>Laverie</option><option>Coiffeur</option>
+        </select>
+      </div>
+      <div class="champ">
+        <label>Localisation</label>
+        <input type="text" id="localisation" placeholder="Ex : Tours, Nantes...">
+      </div>
+      <button class="btn" id="btn-r" onclick="rechercher()">
+        <span class="sp" id="sp-r"></span>
+        <span id="txt-r">Rechercher</span>
+      </button>
+    </div>
+    <div class="msg" id="msg-r"></div>
+    <div id="zone-cartes"></div>
+  </div>
+
+  <div id="vue-prospects" class="vue">
+    <div class="prospects-haut">
+      <div class="compteurs" id="compteurs"></div>
+      <button class="btn sec" onclick="charger()">↻ Rafraîchir</button>
+    </div>
+    <div class="filtres">
+      <select id="f-s" onchange="filtrer()">
+        <option value="">Tous les statuts</option>
+        <option>Nouveau Lead</option><option>A contacter</option><option>Email envoyé</option>
+        <option>À relancer</option><option>RDV Planifié</option><option>Diagnostic fait</option>
+        <option>Devis envoyé</option><option>Devis signé</option><option>Contact KO</option><option>Client</option>
+      </select>
+      <select id="f-a" onchange="filtrer()"><option value="">Toutes les activités</option></select>
+      <select id="f-z" onchange="filtrer()"><option value="">Toutes les zones</option></select>
+      <select id="f-c" onchange="filtrer()">
+        <option value="">Tous les commerciaux</option>
+        <option>Marc D.</option><option>Sophie L.</option><option>Antoine R.</option>
+        <option>Julie M.</option><option>Pierre B.</option>
+      </select>
+    </div>
+    <div class="scroll-haut" id="sh"><div class="scroll-inner" id="si"></div></div>
+    <div class="tw" id="tw">
+      <table>
+        <thead>
+          <tr><th>Nom</th><th>Activité</th><th>Note</th><th>Adresse</th><th>Email</th><th>Commercial</th><th>Statut</th><th>Action</th></tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="8" style="text-align:center;color:var(--gris);padding:28px">Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="fond-modale" id="fm">
+  <div class="modale">
+    <h2>✉️ Contacter ce prospect</h2>
+    <div class="champ"><label>Destinataire</label><input type="email" id="m-dest" placeholder="email@commerce.fr"></div>
+    <div class="champ"><label>Objet</label><input type="text" id="m-obj"></div>
+    <div class="champ"><label>Message <span style="font-weight:400;color:var(--gris)">(modifiable)</span></label><textarea id="m-msg"></textarea></div>
+    <div class="m-statut" id="m-st"></div>
+    <div class="modale-actions">
+      <button class="btn sec" onclick="fermer()">Annuler</button>
+      <button class="btn" id="btn-env" onclick="envoyer()">
+        <span class="sp" id="sp-env"></span>
+        <span id="txt-env">Envoyer</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const W={
+  sourcing:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-sourcing',
+  contacter:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-enrichissement',
+  envoyer:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-envoi',
+  prospects:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-prospects',
+  statut:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-statut'
+};
+const STATUTS=['Nouveau Lead','A contacter','Email envoyé','À relancer','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Contact KO','Client'];
+const COULEURS={'Nouveau Lead':'background:#E5E7EB;color:#6B7570','A contacter':'background:#DBEAFE;color:#1D4ED8','Email envoyé':'background:#BFDBFE;color:#1E40AF','À relancer':'background:#FEF3C7;color:#D97706','RDV Planifié':'background:#FEF3C7;color:#D97706','Diagnostic fait':'background:#EDE9FE;color:#6D28D9','Devis envoyé':'background:#EDE9FE;color:#6D28D9','Devis signé':'background:#EDE9FE;color:#6D28D9','Contact KO':'background:#FEE2E2;color:#DC2626','Client':'background:#D1FAE5;color:#065F46'};
+
+let commercial='',prospectEnCours=null,tous=[];
+
+function choisir(nom){
+  commercial=nom;
+  document.getElementById('nav-com').textContent=nom;
+  document.getElementById('page-accueil').style.display='none';
+  document.getElementById('app').style.display='block';
+  charger();
+}
+
+function vue(nom,btn){
+  document.querySelectorAll('.vue').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-onglet').forEach(b=>b.classList.remove('actif'));
+  document.getElementById('vue-'+nom).classList.add('active');
+  btn.classList.add('actif');
+  if(nom==='prospects')charger();
+}
+
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast vis '+type;
+  setTimeout(()=>t.className='toast',3000);
+}
+
+function badge(s){
+  const st=COULEURS[s]||'background:#E5E7EB;color:#6B7570';
+  return s?'<span class="badge-s" style="'+st+'">'+s+'</span>':'';
+}
+
+function maps(nom,adresse){
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((nom||'')+' '+(adresse||''));
+}
+
+async function rechercher(){
+  const a=document.getElementById('activite').value;
+  const l=document.getElementById('localisation').value.trim();
+  const msg=document.getElementById('msg-r');
+  if(!a||!l){msg.textContent='Renseignez une activité et une localisation.';msg.className='msg vis ko';return;}
+  const btn=document.getElementById('btn-r');
+  btn.disabled=true;
+  document.getElementById('sp-r').style.display='inline-block';
+  document.getElementById('txt-r').textContent='Recherche en cours...';
+  msg.className='msg';
+  document.getElementById('zone-cartes').innerHTML='';
+  try{
+    await fetch(W.sourcing,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activite:a,localisation:l})});
+    await new Promise(r=>setTimeout(r,4000));
+    const rep=await fetch(W.prospects);
+    const data=await rep.json();
+    const liste=Array.isArray(data)?data:(data.array||[]);
+    const f=liste.filter(p=>(p.activite||'').toLowerCase()===a.toLowerCase());
+    if(f.length===0){msg.textContent='Recherche lancée — consultez l\'onglet Prospects dans quelques instants.';msg.className='msg vis info';}
+    else{msg.textContent=f.length+' prospects trouvés.';msg.className='msg vis ok';afficherCartes(f);}
+  }catch(e){msg.textContent='Erreur lors de la recherche. Vérifiez votre connexion.';msg.className='msg vis ko';}
+  finally{btn.disabled=false;document.getElementById('sp-r').style.display='none';document.getElementById('txt-r').textContent='Rechercher';}
+}
+
+function afficherCartes(p){
+  const z=document.getElementById('zone-cartes');
+  z.innerHTML='';
+  const g=document.createElement('div');g.className='grille';
+  p.forEach(pr=>{
+    const c=document.createElement('div');c.className='carte';
+    const estContactable=!pr.statut||pr.statut==='Nouveau Lead'||pr.statut==='A contacter';
+    c.innerHTML=`<div class="carte-nom">${pr.nom||'—'}</div>
+      ${pr.note_google>=4?'<div class="badge-note">⭐ '+pr.note_google+'</div>':''}
+      ${badge(pr.statut)}
+      <div class="carte-info">📍 <a href="${maps(pr.nom,pr.adresse)}" target="_blank">${pr.adresse||'—'}</a></div>
+      ${pr.telephone?'<div class="carte-info">📞 '+pr.telephone+'</div>':''}
+      ${pr.site_web?'<div class="carte-info">🌐 <a href="'+pr.site_web+'" target="_blank">'+pr.site_web+'</a></div>':''}
+      ${pr.email?'<div class="carte-info">📧 '+pr.email+'</div>':''}
+      <button class="btn ${estContactable?'':'gris'}" style="margin-top:8px;justify-content:center" onclick='ouvrir(${JSON.stringify(pr).replace(/'/g,"&#39;")})'>
+        ${estContactable?'✉️ Envoyer un email':'📧 Déjà contacté'}
+      </button>`;
+    g.appendChild(c);
+  });
+  z.appendChild(g);
+}
+
+async function ouvrir(pr){
+  prospectEnCours=pr;
+  document.getElementById('m-dest').value=pr.email||'';
+  document.getElementById('m-obj').value='';
+  document.getElementById('m-msg').value='';
+  document.getElementById('btn-env').disabled=true;
+  stModale('L\'IA rédige votre email personnalisé...','info');
+  document.getElementById('fm').classList.add('ouverte');
+  try{
+    await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite})});
+    await new Promise(r=>setTimeout(r,10000));
+    const rep=await fetch(W.prospects);
+    const data=await rep.json();
+    const liste=Array.isArray(data)?data:(data.array||[]);
+    const maj=liste.find(p=>p.id===pr.id);
+    if(maj){
+      let obj=maj.objet_email||'',msg=maj.email_brouillon||'';
+      try{const d=JSON.parse(maj.email_brouillon);obj=d.objet||obj;msg=d.message||msg;}catch(e){}
+      document.getElementById('m-obj').value=obj;
+      document.getElementById('m-msg').value=msg;
+      document.getElementById('btn-env').disabled=false;
+      stModale('','');
+    }else{document.getElementById('btn-env').disabled=false;stModale('Rédigez manuellement si nécessaire.','info');}
+  }catch(e){document.getElementById('btn-env').disabled=false;stModale('Impossible de générer l\'email. Rédigez manuellement.','ko');}
+}
+
+function fermer(){document.getElementById('fm').classList.remove('ouverte');prospectEnCours=null;}
+
+function stModale(t,type){const e=document.getElementById('m-st');e.textContent=t;e.className='m-statut'+(type?' vis '+type:'');}
+
+async function envoyer(){
+  const dest=document.getElementById('m-dest').value.trim();
+  const obj=document.getElementById('m-obj').value.trim();
+  const msg=document.getElementById('m-msg').value.trim();
+  if(!dest){stModale('Renseignez l\'adresse email du destinataire.','ko');return;}
+  const btn=document.getElementById('btn-env');
+  btn.disabled=true;document.getElementById('sp-env').style.display='inline-block';document.getElementById('txt-env').textContent='Envoi...';stModale('Envoi en cours...','info');
+  try{
+    await fetch(W.envoyer,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destinataire:dest,objet:obj,message:msg,id:prospectEnCours?.id})});
+    stModale('✅ Email envoyé à '+dest,'ok');toast('✅ Email envoyé à '+dest,'ok');setTimeout(fermer,2000);
+  }catch(e){stModale('L\'envoi a échoué. Réessayez.','ko');}
+  finally{btn.disabled=false;document.getElementById('sp-env').style.display='none';document.getElementById('txt-env').textContent='Envoyer';}
+}
+
+document.getElementById('fm').addEventListener('click',function(e){if(e.target===this)fermer();});
+
+async function charger(){
+  document.getElementById('tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gris);padding:26px">Chargement...</td></tr>';
+  try{
+    const rep=await fetch(W.prospects);
+    const data=await rep.json();
+    tous=Array.isArray(data)?data:(data.array||[]);
+    buildFiltres();filtrer();majCompteurs();
+  }catch(e){document.getElementById('tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#DC2626;padding:26px">Impossible de charger les prospects.</td></tr>';}
+}
+
+function buildFiltres(){
+  const acts=[...new Set(tous.map(p=>p.activite).filter(Boolean))].sort();
+  const zones=[...new Set(tous.map(p=>p.zone).filter(Boolean))].sort();
+  const fa=document.getElementById('f-a');fa.innerHTML='<option value="">Toutes les activités</option>';acts.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;fa.appendChild(o);});
+  const fz=document.getElementById('f-z');fz.innerHTML='<option value="">Toutes les zones</option>';zones.forEach(z=>{const o=document.createElement('option');o.value=z;o.textContent=z;fz.appendChild(o);});
+}
+
+function filtrer(){
+  const fs=document.getElementById('f-s').value;
+  const fa=document.getElementById('f-a').value;
+  const fz=document.getElementById('f-z').value;
+  const fc=document.getElementById('f-c').value;
+  const f=tous.filter(p=>(!fs||p.statut===fs)&&(!fa||p.activite===fa)&&(!fz||p.zone===fz)&&(!fc||p.commercial===fc));
+  afficherTableau(f);
+}
+
+function afficherTableau(p){
+  const tbody=document.getElementById('tbody');tbody.innerHTML='';
+  if(p.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gris);padding:26px">Aucun prospect avec ces filtres.</td></tr>';return;}
+  p.forEach(pr=>{
+    const tr=document.createElement('tr');
+    const estContactable=!pr.statut||pr.statut==='Nouveau Lead'||pr.statut==='A contacter';
+    tr.innerHTML=`<td style="font-weight:600">${pr.nom||'—'}</td>
+      <td>${pr.activite||'—'}</td>
+      <td>${pr.note_google>=4?'⭐ '+pr.note_google:(pr.note_google||'—')}</td>
+      <td><a href="${maps(pr.nom,pr.adresse)}" target="_blank" style="color:var(--vert);text-decoration:none">📍 ${pr.adresse||'—'}</a></td>
+      <td>${pr.email||'—'}</td>
+      <td><select onchange="majCommercial('${pr.id}',this.value,'${pr.statut||''}')">
+        <option value="">—</option>
+        ${['Marc D.','Sophie L.','Antoine R.','Julie M.','Pierre B.'].map(c=>'<option'+(pr.commercial===c?' selected':'')+'>'+c+'</option>').join('')}
+      </select></td>
+      <td>${badge(pr.statut)}<br><select style="margin-top:4px" onchange="majStatut('${pr.id}',this.value)">
+        ${STATUTS.map(s=>'<option'+(pr.statut===s?' selected':'')+'>'+s+'</option>').join('')}
+      </select></td>
+      <td><button class="btn ${estContactable?'':'gris'}" style="font-size:0.79rem;padding:6px 11px"
+        onclick='ouvrir(${JSON.stringify(pr).replace(/'/g,"&#39;")})'>
+        ${estContactable?'✉️ Envoyer':'📧 Déjà contacté'}
+      </button></td>`;
+    tbody.appendChild(tr);
+  });
+  const tw=document.getElementById('tw');const si=document.getElementById('si');const sh=document.getElementById('sh');
+  si.style.width=tw.scrollWidth+'px';
+  sh.onscroll=()=>{tw.scrollLeft=sh.scrollLeft;};
+  tw.onscroll=()=>{sh.scrollLeft=tw.scrollLeft;};
+}
+
+function majCompteurs(){
+  const t=tous.length;const e=tous.filter(p=>p.statut==='Email envoyé').length;const r=tous.filter(p=>p.statut==='RDV Planifié').length;
+  document.getElementById('compteurs').innerHTML=`<span class="compteur" style="background:#E5E7EB;color:#6B7570">${t} prospect${t>1?'s':''}</span><span class="compteur" style="background:#BFDBFE;color:#1E40AF">${e} email${e>1?'s':''} envoyé${e>1?'s':''}</span><span class="compteur" style="background:#FEF3C7;color:#D97706">${r} RDV planifié${r>1?'s':''}</span>`;
+}
+
+async function majStatut(id,s){
+  try{await fetch(W.statut,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,statut:s})});const p=tous.find(x=>x.id===id);if(p)p.statut=s;majCompteurs();toast('Statut : '+s,'ok');}
+  catch(e){toast('Erreur statut','ko');}
+}
+
+async function majCommercial(id,nom,statut){
+  try{await fetch(W.statut,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,statut,commercial:nom})});const p=tous.find(x=>x.id===id);if(p)p.commercial=nom;toast('Commercial : '+nom,'ok');}
+  catch(e){toast('Erreur commercial','ko');}
+}
+</script>
+</body>
+</html>
