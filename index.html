@@ -345,7 +345,10 @@ async function envoyer(){
   btn.disabled=true;document.getElementById('sp-env').style.display='inline-block';document.getElementById('txt-env').textContent='Envoi...';stModale('Envoi en cours...','info');
   try{
     await fetch(W.envoyer,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destinataire:dest,objet:obj,message:msg,id:prospectEnCours?.id})});
-    stModale('✅ Email envoyé à '+dest,'ok');toast('✅ Email envoyé à '+dest,'ok');setTimeout(fermer,2000);
+    stModale('✅ Email envoyé à '+dest,'ok');toast('✅ Email envoyé à '+dest,'ok');
+    const p=tous.find(x=>x.id===prospectEnCours?.id);if(p){p.statut='Email envoyé';}
+    filtrer();majCompteurs();
+    setTimeout(fermer,2000);
   }catch(e){stModale('L\'envoi a échoué. Réessayez.','ko');}
   finally{btn.disabled=false;document.getElementById('sp-env').style.display='none';document.getElementById('txt-env').textContent='Envoyer';}
 }
