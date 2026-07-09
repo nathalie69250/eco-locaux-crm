@@ -290,17 +290,13 @@ function afficherCartes(p){
   const g=document.createElement('div');g.className='grille';
   p.forEach(pr=>{
     const c=document.createElement('div');c.className='carte';
-    const estContactable=!pr.statut||pr.statut==='Nouveau Lead'||pr.statut==='A contacter';
     c.innerHTML=`<div class="carte-nom">${pr.nom||'—'}</div>
       ${pr.note_google>=4?'<div class="badge-note">⭐ '+pr.note_google+'</div>':''}
       ${badge(pr.statut)}
       <div class="carte-info">📍 <a href="${maps(pr.nom,pr.adresse)}" target="_blank">${pr.adresse||'—'}</a></div>
       ${pr.telephone?'<div class="carte-info">📞 '+pr.telephone+'</div>':''}
       ${pr.site_web?'<div class="carte-info">🌐 <a href="'+pr.site_web+'" target="_blank">'+pr.site_web+'</a></div>':''}
-      ${pr.email?'<div class="carte-info">📧 '+pr.email+'</div>':''}
-      <button class="btn ${estContactable?'':'gris'}" style="margin-top:8px;justify-content:center" onclick='ouvrir(${JSON.stringify(pr).replace(/'/g,"&#39;")})'>
-        ${estContactable?'✉️ Envoyer un email':'📧 Déjà contacté'}
-      </button>`;
+      ${pr.email?'<div class="carte-info">📧 '+pr.email+'</div>':''}`;
     g.appendChild(c);
   });
   z.appendChild(g);
