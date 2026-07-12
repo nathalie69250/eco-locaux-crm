@@ -414,8 +414,23 @@ function afficherTableau(p){
 }
 
 function majCompteurs(){
-  const t=tous.length;const e=tous.filter(p=>p.statut==='Email envoyé').length;const r=tous.filter(p=>p.statut==='RDV Planifié').length;
-  document.getElementById('compteurs').innerHTML=`<span class="compteur" style="background:#E5E7EB;color:#6B7570">${t} prospect${t>1?'s':''}</span><span class="compteur" style="background:#BFDBFE;color:#1E40AF">${e} email${e>1?'s':''} envoyé${e>1?'s':''}</span><span class="compteur" style="background:#FEF3C7;color:#D97706">${r} RDV planifié${r>1?'s':''}</span>`;
+  const t=tous.length;
+  const etapes=['Email envoyé','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Client','Contact KO'];
+  const couleursCompteur={
+    'Email envoyé':'background:#BFDBFE;color:#1E40AF',
+    'RDV Planifié':'background:#FEF3C7;color:#D97706',
+    'Diagnostic fait':'background:#EDE9FE;color:#6D28D9',
+    'Devis envoyé':'background:#EDE9FE;color:#6D28D9',
+    'Devis signé':'background:#EDE9FE;color:#6D28D9',
+    'Client':'background:#D1FAE5;color:#065F46',
+    'Contact KO':'background:#FEE2E2;color:#DC2626'
+  };
+  let html=`<span class="compteur" style="background:#E5E7EB;color:#6B7570">${t} prospect${t>1?'s':''}</span>`;
+  etapes.forEach(s=>{
+    const n=tous.filter(p=>p.statut===s).length;
+    html+=`<span class="compteur" style="${couleursCompteur[s]}">${n} ${s}</span>`;
+  });
+  document.getElementById('compteurs').innerHTML=html;
 }
 
 async function majStatut(id,s){
