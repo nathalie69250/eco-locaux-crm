@@ -318,11 +318,16 @@ async function ouvrir(pr){
   document.getElementById('fm').classList.add('ouverte');
   try{
     await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite})});
-    await new Promise(r=>setTimeout(r,10000));
-    const rep=await fetch(W.prospects);
-    const data=await rep.json();
-    const liste=Array.isArray(data)?data:(data.array||[]);
-    const maj=liste.find(p=>p.id===pr.id);
+    let maj=null;
+    const delais=[5000,3000,3000,3000];
+    for(const d of delais){
+      await new Promise(r=>setTimeout(r,d));
+      const rep=await fetch(W.prospects);
+      const data=await rep.json();
+      const liste=Array.isArray(data)?data:(data.array||[]);
+      const candidat=liste.find(p=>p.id===pr.id);
+      if(candidat && candidat.email_brouillon){maj=candidat;break;}
+    }
     if(maj){
       let obj=maj.objet_email||'',msg=maj.email_brouillon||'';
       try{const d=JSON.parse(maj.email_brouillon);obj=d.objet||obj;msg=d.message||msg;}catch(e){}
