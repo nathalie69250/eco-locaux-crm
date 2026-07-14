@@ -319,7 +319,7 @@ async function ouvrir(pr){
   try{
     await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite,commercial:commercial})});
     let maj=null;
-    const delais=[5000,3000,3000,3000];
+    const delais=[3000,2000,2000,2000,2000,2000];
     for(const d of delais){
       await new Promise(r=>setTimeout(r,d));
       const rep=await fetch(W.prospects);
