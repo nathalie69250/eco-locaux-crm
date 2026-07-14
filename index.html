@@ -317,7 +317,7 @@ async function ouvrir(pr){
   stModale('L\'IA rédige votre email personnalisé...','info');
   document.getElementById('fm').classList.add('ouverte');
   try{
-    await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite})});
+    await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite,commercial:commercial})});
     let maj=null;
     const delais=[5000,3000,3000,3000];
     for(const d of delais){
