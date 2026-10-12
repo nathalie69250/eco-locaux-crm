@@ -86,6 +86,7 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
 .toast.vis{opacity:1;transform:translateY(0)}
 .toast.ok{background:var(--vert)}
 .toast.ko{background:#DC2626}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #155330;outline-offset:2px}
 @media(max-width:600px){nav{padding:0 13px}.vue{padding:16px 13px}.form-recherche{flex-direction:column}.grille{grid-template-columns:1fr}}
 </style>
 </head>
@@ -122,7 +123,7 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
     </div>
     <div class="form-recherche">
       <div class="champ">
-        <label>Activité</label>
+        <label for="activite">Activité</label>
         <select id="activite">
           <option value="">Choisir...</option>
           <option>Boulangerie</option><option>Pâtisserie</option><option>Boucherie</option>
@@ -131,15 +132,15 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
         </select>
       </div>
       <div class="champ">
-        <label>Localisation</label>
-        <input type="text" id="localisation" placeholder="Ex : Tours, Nantes...">
+        <label for="localisation">Localisation (ville, code postal ou département)</label>
+        <input type="text" id="localisation" placeholder="Ex : Tours, 69250, 69..." onkeydown="if(event.key==='Enter')rechercher()">
       </div>
       <button class="btn" id="btn-r" onclick="rechercher()">
         <span class="sp" id="sp-r"></span>
         <span id="txt-r">Rechercher</span>
       </button>
     </div>
-    <div class="msg" id="msg-r"></div>
+    <div class="msg" id="msg-r" role="status" aria-live="polite"></div>
     <div id="zone-cartes"></div>
   </div>
 
@@ -149,15 +150,15 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
       <button class="btn sec" onclick="charger()">↻ Rafraîchir</button>
     </div>
     <div class="filtres">
-      <select id="f-s" onchange="filtrer()">
+      <select id="f-s" onchange="filtrer()" aria-label="Filtrer par statut">
         <option value="">Tous les statuts</option>
         <option>Nouveau Lead</option><option>A contacter</option><option>Email envoyé</option>
         <option>À relancer</option><option>RDV Planifié</option><option>Diagnostic fait</option>
         <option>Devis envoyé</option><option>Devis signé</option><option>Contact KO</option><option>Client</option>
       </select>
-      <select id="f-a" onchange="filtrer()"><option value="">Toutes les activités</option></select>
-      <select id="f-z" onchange="filtrer()"><option value="">Toutes les zones</option></select>
-      <select id="f-c" onchange="filtrer()">
+      <select id="f-a" onchange="filtrer()" aria-label="Filtrer par activité"><option value="">Toutes les activités</option></select>
+      <select id="f-z" onchange="filtrer()" aria-label="Filtrer par zone"><option value="">Toutes les zones</option></select>
+      <select id="f-c" onchange="filtrer()" aria-label="Filtrer par commercial">
         <option value="">Tous les commerciaux</option>
         <option>Marc D.</option><option>Sophie L.</option><option>Antoine R.</option>
         <option>Julie M.</option><option>Pierre B.</option>
@@ -167,21 +168,21 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
     <div class="tw" id="tw">
       <table>
         <thead>
-          <tr><th>Nom</th><th>Activité</th><th>Note</th><th>Adresse</th><th>Email</th><th>Commercial</th><th>Statut</th><th>Action</th></tr>
+          <tr><th>Nom</th><th>Activité</th><th>Note</th><th>Adresse</th><th>Email</th><th>Commercial</th><th>Statut</th><th>RDV</th><th>Action</th></tr>
         </thead>
-        <tbody id="tbody"><tr><td colspan="8" style="text-align:center;color:var(--gris);padding:28px">Chargement...</td></tr></tbody>
+        <tbody id="tbody"><tr><td colspan="9" style="text-align:center;color:var(--gris);padding:28px">Chargement...</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
 
 <div class="fond-modale" id="fm">
-  <div class="modale">
-    <h2>✉️ Contacter ce prospect</h2>
-    <div class="champ"><label>Destinataire</label><input type="email" id="m-dest" placeholder="email@commerce.fr"></div>
-    <div class="champ"><label>Objet</label><input type="text" id="m-obj"></div>
-    <div class="champ"><label>Message <span style="font-weight:400;color:var(--gris)">(modifiable)</span></label><textarea id="m-msg"></textarea></div>
-    <div class="m-statut" id="m-st"></div>
+  <div class="modale" role="dialog" aria-modal="true" aria-labelledby="titre-fm">
+    <h2 id="titre-fm">✉️ Contacter ce prospect</h2>
+    <div class="champ"><label for="m-dest">Destinataire</label><input type="email" id="m-dest" placeholder="email@commerce.fr"></div>
+    <div class="champ"><label for="m-obj">Objet</label><input type="text" id="m-obj"></div>
+    <div class="champ"><label for="m-msg">Message <span style="font-weight:400;color:var(--gris)">(modifiable)</span></label><textarea id="m-msg"></textarea></div>
+    <div class="m-statut" id="m-st" role="status" aria-live="polite"></div>
     <div class="modale-actions">
       <button class="btn sec" onclick="fermer()">Annuler</button>
       <button class="btn" id="btn-env" onclick="envoyer()">
@@ -192,15 +193,29 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="fond-modale" id="frdv">
+  <div class="modale" role="dialog" aria-modal="true" aria-labelledby="titre-rdv" style="max-width:400px">
+    <h2 id="titre-rdv">📅 Planifier le rendez-vous</h2>
+    <p style="font-size:0.85rem;color:var(--gris);margin-bottom:12px" id="rdv-nom"></p>
+    <div class="champ"><label for="rdv-date">Date et heure du RDV</label><input type="datetime-local" id="rdv-date"></div>
+    <div class="m-statut" id="rdv-st" role="status" aria-live="polite"></div>
+    <div class="modale-actions">
+      <button class="btn sec" onclick="fermerRdv(false)">Annuler</button>
+      <button class="btn" onclick="validerRdv()">Enregistrer le RDV</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const W={
-  sourcing:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-sourcing-apify',
-  contacter:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-enrichissement',
-  envoyer:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-envoi',
-  prospects:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-prospects',
-  statut:'https://oreegami.app.n8n.cloud/webhook/eco-locaux-statut'
+  // Les 5 workflows n8n (instance personnelle merignieux.app.n8n.cloud)
+  sourcing:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-sourcing',
+  contacter:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-enrichissement',
+  envoyer:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-envoi',
+  prospects:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-prospects',
+  statut:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-statut'
 };
 const STATUTS=['Nouveau Lead','A contacter','Email envoyé','À relancer','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Contact KO','Client'];
 const COULEURS={'Nouveau Lead':'background:#E5E7EB;color:#6B7570','A contacter':'background:#DBEAFE;color:#1D4ED8','Email envoyé':'background:#BFDBFE;color:#1E40AF','À relancer':'background:#FEF3C7;color:#D97706','RDV Planifié':'background:#FEF3C7;color:#D97706','Diagnostic fait':'background:#EDE9FE;color:#6D28D9','Devis envoyé':'background:#EDE9FE;color:#6D28D9','Devis signé':'background:#EDE9FE;color:#6D28D9','Contact KO':'background:#FEE2E2;color:#DC2626','Client':'background:#D1FAE5;color:#065F46'};
@@ -254,7 +269,8 @@ async function rechercher(){
   msg.className='msg';
   document.getElementById('zone-cartes').innerHTML='';
   try{
-    await fetch(W.sourcing,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activite:a,localisation:l})});
+    const lancement=await fetch(W.sourcing,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({activite:a,localisation:l})});
+    if(!lancement.ok) throw new Error('Recherche refusée ('+lancement.status+')');
     document.getElementById('txt-r').textContent='Recherche en cours (jusqu\'à 2 min)...';
     let f=[];
     const paliers=[20000,20000,20000,20000,20000,20000];
@@ -270,7 +286,7 @@ async function rechercher(){
       if(f.length>0)break;
     }
     if(f.length===0){msg.textContent='Recherche lancée — consultez l\'onglet Prospects dans quelques instants.';msg.className='msg vis info';}
-    else{msg.textContent=f.length+' prospects trouvés.';msg.className='msg vis ok';afficherCartes(f);}
+    else{msg.textContent=f.length+(f.length>1?' prospects trouvés.':' prospect trouvé.');msg.className='msg vis ok';afficherCartes(f);}
   }catch(e){msg.textContent='Erreur lors de la recherche. Vérifiez votre connexion.';msg.className='msg vis ko';}
   finally{btn.disabled=false;document.getElementById('sp-r').style.display='none';document.getElementById('txt-r').textContent='Rechercher';}
 }
@@ -306,26 +322,22 @@ async function ouvrir(pr){
   stModale('L\'IA rédige votre email personnalisé...','info');
   document.getElementById('fm').classList.add('ouverte');
   try{
-    await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite,commercial:commercial})});
-    let maj=null;
-    const delais=[3000,2000,2000,2000,2000,2000,3000];
-    for(const d of delais){
-      await new Promise(r=>setTimeout(r,d));
-      const rep=await fetch(W.prospects);
-      const data=await rep.json();
-      const liste=Array.isArray(data)?data:(data.array||[]);
-      const candidat=liste.find(p=>p.id===pr.id);
-      if(candidat && candidat.email_brouillon){maj=candidat;break;}
+    // W2 rédige le brouillon avec l'IA, le contrôle, puis le renvoie directement
+    const rep=await fetch(W.contacter,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:pr.id,nom:pr.nom,adresse:pr.adresse,note_google:pr.note_google,activite:pr.activite,commercial:commercial})});
+    const d=await rep.json().catch(()=>({}));
+    document.getElementById('btn-env').disabled=false;
+    if(rep.ok && d.message){
+      document.getElementById('m-obj').value=d.objet||'';
+      document.getElementById('m-msg').value=d.message;
+      // Si le contrôle automatique a repéré un problème, on prévient le commercial
+      if(d.alertes && d.alertes.length){stModale('⚠️ À relire avant envoi : '+d.alertes.join(' ; '),'ko');}
+      else{stModale('Brouillon rédigé par l\'IA : relisez-le avant d\'envoyer.','info');}
+      const p=tous.find(x=>x.id===pr.id);if(p&&(!p.statut||p.statut==='Nouveau Lead'))p.statut='A contacter';
+    }else{
+      stModale(d.erreur||'Impossible de générer l\'email. Rédigez-le manuellement.','ko');
     }
-    if(maj){
-      let obj=maj.objet_email||'',msg=maj.email_brouillon||'';
-      try{const d=JSON.parse(maj.email_brouillon);obj=d.objet||obj;msg=d.message||msg;}catch(e){}
-      document.getElementById('m-obj').value=obj;
-      document.getElementById('m-msg').value=msg;
-      document.getElementById('btn-env').disabled=false;
-      stModale('','');
-    }else{document.getElementById('btn-env').disabled=false;stModale('Rédigez manuellement si nécessaire.','info');}
-  }catch(e){document.getElementById('btn-env').disabled=false;stModale('Impossible de générer l\'email. Rédigez manuellement.','ko');}
+    document.getElementById('m-msg').focus();
+  }catch(e){document.getElementById('btn-env').disabled=false;stModale('Impossible de joindre le service de rédaction. Rédigez l\'email manuellement.','ko');}
 }
 
 function fermer(){document.getElementById('fm').classList.remove('ouverte');prospectEnCours=null;}
@@ -340,7 +352,9 @@ async function envoyer(){
   const btn=document.getElementById('btn-env');
   btn.disabled=true;document.getElementById('sp-env').style.display='inline-block';document.getElementById('txt-env').textContent='Envoi...';stModale('Envoi en cours...','info');
   try{
-    await fetch(W.envoyer,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destinataire:dest,objet:obj,message:msg,id:prospectEnCours?.id})});
+    const rep=await fetch(W.envoyer,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destinataire:dest,objet:obj,message:msg,id:prospectEnCours?.id})});
+    const d=await rep.json().catch(()=>({}));
+    if(!rep.ok){stModale('❌ '+(d.erreur||'L\'envoi a échoué. Réessayez.'),'ko');return;}
     stModale('✅ Email envoyé à '+dest,'ok');toast('✅ Email envoyé à '+dest,'ok');
     const p=tous.find(x=>x.id===prospectEnCours?.id);if(p){p.statut='Email envoyé';}
     filtrer();majCompteurs();
@@ -352,13 +366,13 @@ async function envoyer(){
 document.getElementById('fm').addEventListener('click',function(e){if(e.target===this)fermer();});
 
 async function charger(){
-  document.getElementById('tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gris);padding:26px">Chargement...</td></tr>';
+  document.getElementById('tbody').innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gris);padding:26px">Chargement...</td></tr>';
   try{
     const rep=await fetch(W.prospects);
     const data=await rep.json();
     tous=Array.isArray(data)?data:(data.array||[]);
     buildFiltres();filtrer();majCompteurs();
-  }catch(e){document.getElementById('tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:#DC2626;padding:26px">Impossible de charger les prospects.</td></tr>';}
+  }catch(e){document.getElementById('tbody').innerHTML='<tr><td colspan="9" style="text-align:center;color:#DC2626;padding:26px">Impossible de charger les prospects.</td></tr>';}
 }
 
 function buildFiltres(){
@@ -379,7 +393,7 @@ function filtrer(){
 
 function afficherTableau(p){
   const tbody=document.getElementById('tbody');tbody.innerHTML='';
-  if(p.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gris);padding:26px">Aucun prospect avec ces filtres.</td></tr>';return;}
+  if(p.length===0){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gris);padding:26px">Aucun prospect avec ces filtres.</td></tr>';return;}
   p.forEach(pr=>{
     const tr=document.createElement('tr');
     const verrouille = pr.commercial && pr.commercial !== commercial;
@@ -394,6 +408,7 @@ function afficherTableau(p){
         <td>${pr.email||'—'}</td>
         <td>${pr.commercial}<br><a href="#" onclick="deverrouillerCommercial(event,'${pr.id}','${pr.statut||''}')" style="font-size:0.72rem;color:var(--vert)">🔑 Déverrouiller (directeur)</a></td>
         <td>${badge(pr.statut)}</td>
+        <td>${fmtRdv(pr.date_rdv)}</td>
         <td><button class="btn gris" style="font-size:0.75rem;padding:6px 11px" disabled title="Ce prospect est suivi par ${pr.commercial}">
           🔒 Pris en charge par ${pr.commercial}
         </button></td>`;
@@ -412,6 +427,7 @@ function afficherTableau(p){
       <td>${badge(pr.statut)}<br><select style="margin-top:4px" onchange="majStatut('${pr.id}',this.value)">
         ${STATUTS.map(s=>'<option'+(pr.statut===s?' selected':'')+'>'+s+'</option>').join('')}
       </select></td>
+      <td>${fmtRdv(pr.date_rdv)}</td>
       <td><button class="btn ${estContactable?'':'gris'}" style="font-size:0.79rem;padding:6px 11px"
         onclick='ouvrir(${JSON.stringify(pr).replace(/'/g,"&#39;")})'>
         ${texteBouton}
@@ -444,15 +460,62 @@ function majCompteurs(){
   document.getElementById('compteurs').innerHTML=html;
 }
 
+// Envoie une modification au workflow W5 et renvoie true seulement si la base l'a acceptée
+async function envoyerMaj(corps){
+  try{
+    const rep=await fetch(W.statut,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corps)});
+    const d=await rep.json().catch(()=>({}));
+    if(!rep.ok){toast(d.erreur||'Modification refusée.','ko');return false;}
+    return true;
+  }catch(e){toast('Impossible de joindre le serveur.','ko');return false;}
+}
+
 async function majStatut(id,s){
-  try{await fetch(W.statut,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,statut:s})});const p=tous.find(x=>x.id===id);if(p)p.statut=s;majCompteurs();toast('Statut : '+s,'ok');}
-  catch(e){toast('Erreur statut','ko');}
+  // Passer en « RDV Planifié » demande d'abord la date et l'heure
+  if(s==='RDV Planifié'){ouvrirRdv(id);return;}
+  if(await envoyerMaj({id,statut:s})){const p=tous.find(x=>x.id===id);if(p)p.statut=s;majCompteurs();toast('Statut : '+s,'ok');}
+  filtrer();
 }
 
 async function majCommercial(id,nom,statut){
-  try{await fetch(W.statut,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,statut,commercial:nom})});const p=tous.find(x=>x.id===id);if(p)p.commercial=nom;toast('Commercial : '+nom,'ok');}
-  catch(e){toast('Erreur commercial','ko');}
+  if(await envoyerMaj({id,statut,commercial:nom})){const p=tous.find(x=>x.id===id);if(p)p.commercial=nom||null;toast('Commercial : '+(nom||'aucun'),'ok');}
+  filtrer();
 }
+
+// ---- Rendez-vous (cahier des charges §5) ----
+let rdvEnCours=null;
+function fmtRdv(v){
+  if(!v)return '—';
+  const d=new Date(v);
+  return '📅 '+d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+function ouvrirRdv(id){
+  rdvEnCours=tous.find(x=>x.id===id);
+  document.getElementById('rdv-nom').textContent=rdvEnCours?rdvEnCours.nom:'';
+  document.getElementById('rdv-date').value='';
+  document.getElementById('rdv-st').className='m-statut';
+  document.getElementById('frdv').classList.add('ouverte');
+  document.getElementById('rdv-date').focus();
+}
+function fermerRdv(){document.getElementById('frdv').classList.remove('ouverte');rdvEnCours=null;filtrer();}
+async function validerRdv(){
+  const v=document.getElementById('rdv-date').value;
+  const st=document.getElementById('rdv-st');
+  if(!v){st.textContent='Choisissez la date et l\'heure du rendez-vous.';st.className='m-statut vis ko';return;}
+  if(new Date(v)<new Date()){st.textContent='La date du rendez-vous est déjà passée.';st.className='m-statut vis ko';return;}
+  const iso=new Date(v).toISOString();
+  if(rdvEnCours && await envoyerMaj({id:rdvEnCours.id,statut:'RDV Planifié',date_rdv:iso})){
+    rdvEnCours.statut='RDV Planifié';rdvEnCours.date_rdv=iso;majCompteurs();
+    toast('RDV planifié : '+fmtRdv(iso).replace('📅 ',''),'ok');fermerRdv();
+  }
+}
+
+// Touche Échap : ferme la fenêtre ouverte (accessibilité clavier)
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(document.getElementById('frdv').classList.contains('ouverte'))fermerRdv();
+  else if(document.getElementById('fm').classList.contains('ouverte'))fermer();
+});
 
 const MOT_DE_PASSE_DIRECTEUR = 'ecolocaux2026';
 
