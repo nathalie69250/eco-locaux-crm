@@ -269,6 +269,10 @@ function maps(nom,adresse){
   return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((nom||'')+' '+(adresse||''));
 }
 
+// Met un texte en minuscules sans accents ni espaces superflus,
+// pour comparer "Lyon 6e" et "lyon 6E" ou "Neuville-sur-Saône" et "neuville-sur-saone".
+function norm(t){return (t||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
+
 async function rechercher(){
   const a=document.getElementById('activite').value;
   const l=document.getElementById('localisation').value.trim();
@@ -290,7 +294,10 @@ async function rechercher(){
       const rep=await fetch(W.prospects);
       const data=await rep.json();
       const liste=Array.isArray(data)?data:(data.array||[]);
-      f=liste.filter(p=>(p.activite||'').toLowerCase()===a.toLowerCase());
+      // On ne garde que les prospects de l'activité ET de la zone demandées.
+      // Avant, seul l'activité était filtrée : toutes les boulangeries déjà en base
+      // (Nantes, Lyon, Tours...) s'affichaient, quelle que soit la localisation saisie.
+      f=liste.filter(p=>norm(p.activite)===norm(a)&&(norm(p.zone)===norm(l)||norm(p.adresse).includes(norm(l))));
       if(f.length>0)break;
     }
     if(f.length===0){msg.textContent='Recherche lancée — consultez l\'onglet Prospects dans quelques instants.';msg.className='msg vis info';}
