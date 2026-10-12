@@ -15,13 +15,6 @@ body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--fond);
 .grille-com{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:480px}
 .btn-com{padding:13px 22px;background:var(--surface);border:2px solid var(--bordure);border-radius:var(--radius);font-size:0.93rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--texte);transition:all 0.15s;min-width:130px;text-align:center}
 .btn-com:hover{border-color:var(--vert);color:var(--vert);background:var(--vert-clair)}
-.actu{background:var(--surface);border:1px solid var(--bordure);border-radius:var(--radius);box-shadow:var(--ombre);padding:20px 24px;max-width:540px;width:100%}
-.actu-tit{font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--vert);margin-bottom:12px}
-.actu-item{padding:9px 0;border-bottom:1px solid var(--bordure)}
-.actu-item:last-child{border-bottom:none}
-.actu-item-h{font-size:0.86rem;font-weight:600;margin-bottom:3px}
-.actu-item-p{font-size:0.79rem;color:var(--gris);line-height:1.4}
-.actu-item-s{font-size:0.74rem;color:var(--vert);margin-top:2px}
 #app{display:none}
 nav{background:var(--surface);border-bottom:1px solid var(--bordure);padding:0 24px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;box-shadow:var(--ombre);flex-wrap:wrap}
 .nav-logo{font-weight:800;font-size:1rem;color:var(--vert);padding:14px 0}
@@ -110,30 +103,6 @@ td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font
     <button class="btn-com" onclick="choisir('Antoine R.')">Antoine R.</button>
     <button class="btn-com" onclick="choisir('Julie M.')">Julie M.</button>
     <button class="btn-com" onclick="choisir('Pierre B.')">Pierre B.</button>
-  </div>
-  <div class="actu">
-    <div class="actu-tit">🏪 Actu commerces de proximité & énergie</div>
-    <div class="actu-item">
-      <a href="https://dynamis-energies.fr/contrat-energie-boucherie-charcuterie/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-        <div class="actu-item-h" style="text-decoration:underline">Boucheries : le froid continu, premier poste de consommation</div>
-        <div class="actu-item-p">Chambres froides et vitrines réfrigérées tournent 24h/24. Les CEE peuvent financer le remplacement des groupes froids ou l'isolation des chambres froides.</div>
-        <div class="actu-item-s">Juin 2026 — Source : Dynamis Énergies</div>
-      </a>
-    </div>
-    <div class="actu-item">
-      <a href="https://www.aqualogia.fr/actualite-pressing-en-2026/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-        <div class="actu-item-h" style="text-decoration:underline">Pressings : l'essor de l'aqua-nettoyage face à la hausse des charges</div>
-        <div class="actu-item-p">Le secteur se modernise vers des procédés à base d'eau plus durables, alors que machines de lavage et générateurs de vapeur pèsent sur les charges d'exploitation.</div>
-        <div class="actu-item-s">Juin 2026 — Source : Aqualogia</div>
-      </a>
-    </div>
-    <div class="actu-item">
-      <a href="https://www.vesuvianoforni.com/fr/blog/consommation-fours-pizza-gaz-bois-electrique" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-        <div class="actu-item-h" style="text-decoration:underline">Pizzerias : quel four choisir entre gaz, bois et électrique ?</div>
-        <div class="actu-item-p">Le choix du four influence directement les coûts opérationnels. Une analyse comparative aide à arbitrer entre performance et consommation énergétique.</div>
-        <div class="actu-item-s">Juin 2026 — Source : Vesuviano Forni</div>
-      </a>
-    </div>
   </div>
 </div>
 
