@@ -77,6 +77,12 @@ tbody tr.verrou{color:#4B5550;background:#FAFAF8}
 td{padding:9px 13px;vertical-align:middle}
 td select{padding:4px 7px;border:1px solid var(--bordure);border-radius:6px;font-size:0.8rem;font-family:inherit;background:var(--surface);cursor:pointer;color:var(--texte);max-width:155px}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
+.explication{background:var(--surface);border:1px solid var(--bordure);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;font-size:0.84rem;line-height:1.55}
+.explication summary{cursor:pointer;font-weight:600;color:var(--vert)}
+.explication p,.explication ol{margin-top:8px}
+.explication ol{padding-left:20px}
+.motif{display:block;font-size:0.74rem;color:#8A4A20;margin-top:2px;max-width:260px;line-height:1.35}
+.verifie{font-size:0.72rem;color:var(--vert);font-weight:600}
 
 /* ---------- Vue pipeline (Kanban) ---------- */
 .aide{font-size:0.83rem;color:var(--gris);margin-bottom:14px}
@@ -185,8 +191,21 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
     <h1 class="sr">Liste des prospects</h1>
     <div class="prospects-haut">
       <div class="compteurs" id="compteurs"></div>
-      <button class="btn sec" onclick="charger()">↻ Rafraîchir</button>
+      <div class="actions">
+        <button class="btn sec" id="btn-emails" onclick="chercherEmails()" style="display:none">🔎 Chercher les emails manquants</button>
+        <button class="btn sec" onclick="charger()">↻ Rafraîchir</button>
+      </div>
     </div>
+    <details class="explication">
+      <summary>ℹ️ Pourquoi certains prospects n'ont pas d'email ?</summary>
+      <p>Google Maps ne publie jamais l'adresse email des commerces. L'outil la cherche donc automatiquement, dans cet ordre :</p>
+      <ol>
+        <li><strong>Le site web du commerce</strong> : la page d'accueil et les pages liées (Contact, Mentions légales…).</li>
+        <li><strong>Sa page Facebook</strong> (rubrique « À propos »), retrouvée par une recherche Google si le commerce n'a pas de site.</li>
+        <li><strong>Une vérification</strong> : le domaine de l'adresse trouvée doit pouvoir recevoir du courrier (✓ vérifié).</li>
+      </ol>
+      <p>Quand aucune adresse n'est publiée nulle part (pas de site, pas de page Facebook, ou aucune adresse affichée), aucun outil ne peut l'inventer : la raison exacte est indiquée sur la fiche et le prospect est à <strong>contacter par téléphone ou en boutique</strong>. Les enseignes nationales (Picard, Paul…) sont signalées hors cible : la décision se prend au siège.</p>
+    </details>
     <div class="filtres">
       <select id="f-s" onchange="filtrer()" aria-label="Filtrer par statut"><option value="">Tous les statuts</option></select>
       <select id="f-a" onchange="filtrer()" aria-label="Filtrer par activité"><option value="">Toutes les activités</option></select>
@@ -285,7 +304,8 @@ const W={
   contacter:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-enrichissement',
   envoyer:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-envoi',
   prospects:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-prospects',
-  statut:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-statut'
+  statut:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-statut',
+  emails:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-emails'   // W6 : recherche des emails manquants
 };
 const STATUTS=['Nouveau Lead','A contacter','Email envoyé','À relancer','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Contact KO','Client'];
 const COULEURS={'Nouveau Lead':'background:#E5E7EB;color:#4B5550','A contacter':'background:#DBEAFE;color:#1D4ED8','Email envoyé':'background:#BFDBFE;color:#1E40AF','À relancer':'background:#FEF3C7;color:#92400E','RDV Planifié':'background:#FEF3C7;color:#92400E','Diagnostic fait':'background:#EDE9FE;color:#6D28D9','Devis envoyé':'background:#EDE9FE;color:#6D28D9','Devis signé':'background:#EDE9FE;color:#6D28D9','Contact KO':'background:#FEE2E2;color:#B91C1C','Client':'background:#D1FAE5;color:#065F46'};
@@ -303,6 +323,13 @@ function toast(msg,type='ok'){const t=document.getElementById('toast');t.textCon
 function badge(s){return s?'<span class="badge-s" style="'+(COULEURS[s]||'')+'">'+esc(s)+'</span>':'';}
 function maps(nom,adresse){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((nom||'')+' '+(adresse||''));}
 function lienSur(url){return /^https?:\/\//i.test(url||'')?url:'';}
+// Cellule « email » : l'adresse et sa provenance, ou la raison de son absence + le téléphone
+function celluleEmail(pr){
+  if(pr.email)return esc(pr.email)+(pr.email_verifie?'<br><span class="verifie">✓ vérifié'+(pr.email_source?' · '+esc(pr.email_source):'')+'</span>':'');
+  const tel=pr.telephone?'<br>📞 <a href="tel:'+esc(pr.telephone.replace(/\s/g,''))+'" style="color:var(--vert)">'+esc(pr.telephone)+'</a>':'';
+  const motif=pr.email_motif||'Recherche d\'email pas encore lancée.';
+  return '<span style="color:var(--gris)">Pas d\'email</span><span class="motif">'+esc(motif)+'</span>'+tel;
+}
 function fmtRdv(v){if(!v)return '—';const d=new Date(v);return '📅 '+d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
 
 // Règle d'affichage (la même règle est appliquée côté serveur par n8n) :
@@ -346,7 +373,20 @@ async function demarrer(user){
   document.getElementById('page-connexion').classList.remove('vis');
   document.getElementById('app').style.display='block';
   remplirListes();
+  // Seul le directeur lance la recherche d'emails sur toute la base (coût Apify)
+  document.getElementById('btn-emails').style.display=moi.role==='directeur'?'inline-flex':'none';
   charger();
+}
+
+// W6 : cherche les emails manquants (20 prospects par lancement)
+async function chercherEmails(){
+  const b=document.getElementById('btn-emails');b.disabled=true;
+  try{
+    const rep=await appeler(W.emails,{limite:20});
+    const d=await rep.json().catch(()=>({}));
+    toast(rep.ok?'🔎 Recherche des emails lancée : rafraîchissez dans quelques minutes.':(d.erreur||'Lancement refusé.'),rep.ok?'ok':'ko');
+  }catch(e){if(e.message!=='401')toast('Impossible de joindre le serveur.','ko');}
+  finally{setTimeout(()=>{b.disabled=false;},60000);}
 }
 
 document.getElementById('form-connexion').addEventListener('submit',async e=>{
@@ -428,7 +468,7 @@ function afficherCartes(p){
       <div class="carte-info">📍 <a href="${maps(pr.nom,pr.adresse)}" target="_blank" rel="noopener">${esc(pr.adresse)||'—'}</a></div>
       ${pr.telephone?'<div class="carte-info">📞 '+esc(pr.telephone)+'</div>':''}
       ${lienSur(pr.site_web)?'<div class="carte-info">🌐 <a href="'+esc(pr.site_web)+'" target="_blank" rel="noopener">'+esc(pr.site_web)+'</a></div>':''}
-      <div class="carte-info">📧 ${esc(pr.email)||'Email non trouvé'}</div>
+      <div class="carte-info">📧 ${celluleEmail(pr)}</div>
       ${pr.email&&peutModifier(pr)?'<button class="btn petit" style="margin-top:6px;width:fit-content" onclick="ouvrir(\''+pr.id+'\')">✉️ Contacter</button>':''}
     </article>`).join('')+'</div>';
 }
@@ -529,7 +569,7 @@ function afficherTableau(p){
       :badge(pr.statut);
     const actions=ok
       ?`<div class="actions">
-          ${pr.email?`<button class="btn petit ${contactable?'':'gris'}" onclick="ouvrir('${pr.id}')">${contactable?'✉️ Contacter':'📧 Recontacter'}</button>`:'<span style="font-size:0.75rem;color:var(--gris)">📞 Pas d\'email</span>'}
+          ${pr.email?`<button class="btn petit ${contactable?'':'gris'}" onclick="ouvrir('${pr.id}')">${contactable?'✉️ Contacter':'📧 Recontacter'}</button>`:'<span style="font-size:0.75rem;color:var(--gris)">📞 À appeler</span>'}
           <button class="btn petit sec" onclick="ouvrirNote('${pr.id}')">📝 Notes${pr.notes?' •':''}</button>
         </div>`
       :`<span style="font-size:0.76rem">🔒 Suivi par ${esc(pr.commercial)}</span>`;
@@ -538,7 +578,7 @@ function afficherTableau(p){
       <td>${esc(pr.activite)||'—'}</td>
       <td>${pr.note_google?'⭐ '+esc(pr.note_google):'—'}</td>
       <td><a href="${maps(pr.nom,pr.adresse)}" target="_blank" rel="noopener" style="color:var(--vert);text-decoration:none">📍 ${esc(pr.adresse)||'—'}</a></td>
-      <td>${esc(pr.email)||'—'}</td>
+      <td>${celluleEmail(pr)}</td>
       <td>${colCom}</td>
       <td>${colStatut}</td>
       <td>${fmtRdv(pr.date_rdv)}</td>
@@ -549,6 +589,10 @@ function afficherTableau(p){
 function majCompteurs(){
   const t=tous.length;
   let html=`<span class="compteur" style="background:#E5E7EB;color:#4B5550">${t} prospect${t>1?'s':''}</span>`;
+  // Joignabilité : par email ou à appeler
+  const avecEmail=tous.filter(p=>p.email).length;
+  html+=`<span class="compteur" style="background:#EAF5EF;color:var(--vert)">✉️ ${avecEmail} joignable${avecEmail>1?'s':''} par email</span>`;
+  html+=`<span class="compteur" style="background:#FBF3EC;color:#8A4A20">📞 ${t-avecEmail} à appeler</span>`;
   ['Email envoyé','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Client','Contact KO'].forEach(s=>{
     html+=`<span class="compteur" style="${COULEURS[s]}">${tous.filter(p=>p.statut===s).length} ${s}</span>`;
   });
