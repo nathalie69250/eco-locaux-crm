@@ -446,9 +446,9 @@ async function rechercher(){
   try{
     const lancement=await appeler(W.sourcing,{activite:a,localisation:l});
     if(!lancement.ok)throw new Error('Recherche refusée ('+lancement.status+')');
-    document.getElementById('txt-r').textContent='Recherche en cours (jusqu\'à 2 min)...';
+    document.getElementById('txt-r').textContent='Recherche en cours (jusqu\'à 5 min)...';
     let f=[];
-    for(let i=0;i<6;i++){
+    for(let i=0;i<15;i++){   // 15 x 20 s = 5 min : Google Maps peut mettre plus de 3 min
       await new Promise(r=>setTimeout(r,20000));
       const rep=await appeler(W.prospects);
       const data=await rep.json();
@@ -458,7 +458,7 @@ async function rechercher(){
       f=liste.filter(p=>norm(p.activite)===norm(a)&&(norm(p.zone)===norm(l)||norm(p.adresse).includes(norm(l))));
       if(f.length>0)break;
     }
-    if(f.length===0){msg.textContent='Aucun nouveau prospect trouvé pour cette zone (ou recherche encore en cours) : consultez l\'onglet Prospects dans quelques instants.';msg.className='msg vis info';}
+    if(f.length===0){msg.textContent='Aucun nouveau prospect trouvé après 5 minutes (zone déjà prospectée, ou recherche encore en cours) : consultez l\'onglet Prospects.';msg.className='msg vis info';}
     else{msg.textContent=f.length+(f.length>1?' prospects trouvés.':' prospect trouvé.');msg.className='msg vis ok';afficherCartes(f);}
   }catch(e){if(e.message!=='401'){msg.textContent='Erreur lors de la recherche. Vérifiez votre connexion.';msg.className='msg vis ko';}}
   finally{btn.disabled=false;document.getElementById('sp-r').style.display='none';document.getElementById('txt-r').textContent='Rechercher';}
