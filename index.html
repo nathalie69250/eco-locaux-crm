@@ -325,7 +325,12 @@ function maps(nom,adresse){return 'https://www.google.com/maps/search/?api=1&que
 function lienSur(url){return /^https?:\/\//i.test(url||'')?url:'';}
 // Cellule « email » : l'adresse et sa provenance, ou la raison de son absence + le téléphone
 function celluleEmail(pr){
-  if(pr.email)return esc(pr.email)+(pr.email_verifie?'<br><span class="verifie">✓ vérifié'+(pr.email_source?' · '+esc(pr.email_source):'')+'</span>':'');
+  if(pr.email){
+    // ✓ boîte vérifiée par Hunter ; ⚠ adresse non garantie ; sinon vérification en cours
+    if(pr.email_verifie)return esc(pr.email)+'<br><span class="verifie">✓ boîte vérifiée'+(pr.email_source?' · '+esc(pr.email_source.split(' · ')[0]):'')+'</span>';
+    if(pr.email_source)return esc(pr.email)+'<br><span class="motif">⚠ '+esc(pr.email_source.split(' · ').slice(1).join(' · ')||pr.email_source)+'</span>';
+    return esc(pr.email)+'<br><span class="motif">Vérification en cours…</span>';
+  }
   const tel=pr.telephone?'<br>📞 <a href="tel:'+esc(pr.telephone.replace(/\s/g,''))+'" style="color:var(--vert)">'+esc(pr.telephone)+'</a>':'';
   const motif=pr.email_motif||'Recherche d\'email pas encore lancée.';
   return '<span style="color:var(--gris)">Pas d\'email</span><span class="motif">'+esc(motif)+'</span>'+tel;
@@ -460,6 +465,8 @@ async function rechercher(){
 }
 
 function afficherCartes(p){
+  // Les prospects joignables par email (boîte vérifiée d'abord) s'affichent en premier
+  p=[...p].sort((a,b)=>(b.email?(b.email_verifie?2:1):0)-(a.email?(a.email_verifie?2:1):0));
   const z=document.getElementById('zone-cartes');
   z.innerHTML='<div class="grille">'+p.map(pr=>`<article class="carte">
       <h2 class="carte-nom">${esc(pr.nom)||'—'}</h2>
