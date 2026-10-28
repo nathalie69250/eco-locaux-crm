@@ -151,7 +151,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
     <div class="nav-onglets" role="tablist">
       <button class="nav-onglet actif" role="tab" aria-selected="true" onclick="vue('recherche',this)">🔍 Recherche</button>
       <button class="nav-onglet" role="tab" aria-selected="false" onclick="vue('prospects',this)">📋 Prospects</button>
-      <button class="nav-onglet" role="tab" aria-selected="false" onclick="vue('pipeline',this)">🗂️ Pipeline</button>
+      <button class="nav-onglet" role="tab" aria-selected="false" onclick="vue('pipeline',this)">🗂️ Suivi commercial</button>
     </div>
     <div class="nav-com" id="nav-com">—</div>
     <button class="nav-sortir" onclick="deconnexion()">Se déconnecter</button>
@@ -225,7 +225,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
 
   <!-- ---------- Vue Pipeline (Kanban) ---------- -->
   <main id="vue-pipeline" class="vue">
-    <h1 class="sr">Pipeline de vente</h1>
+    <h1 class="sr">Suivi commercial</h1>
     <div class="prospects-haut">
       <p class="aide">Glissez une fiche dans une autre colonne pour changer son statut, ou utilisez les flèches ◀ ▶ (accessibles au clavier).</p>
       <button class="btn sec" onclick="charger()">↻ Rafraîchir</button>
@@ -320,7 +320,10 @@ let moi=null,prospectEnCours=null,tous=[];
 function esc(t){return (t??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function norm(t){return (t||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast vis '+type;clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast',3500);}
-function badge(s){return s?'<span class="badge-s" style="'+(COULEURS[s]||'')+'">'+esc(s)+'</span>':'';}
+// Libellés affichés en français : la valeur enregistrée en base ne change pas (les workflows n8n l'utilisent)
+const LIB={'Nouveau Lead':'Nouveau prospect','A contacter':'À contacter','RDV Planifié':'RDV planifié','Contact KO':'Sans suite'};
+function lib(s){return LIB[s]||s;}
+function badge(s){return s?'<span class="badge-s" style="'+(COULEURS[s]||'')+'">'+esc(lib(s))+'</span>':'';}
 function maps(nom,adresse){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((nom||'')+' '+(adresse||''));}
 function lienSur(url){return /^https?:\/\//i.test(url||'')?url:'';}
 // Cellule « email » : l'adresse et sa provenance, ou la raison de son absence + le téléphone
@@ -425,7 +428,7 @@ function vue(nom,btn){
 }
 
 function remplirListes(){
-  document.getElementById('f-s').innerHTML='<option value="">Tous les statuts</option>'+STATUTS.map(s=>'<option>'+s+'</option>').join('');
+  document.getElementById('f-s').innerHTML='<option value="">Tous les statuts</option>'+STATUTS.map(s=>'<option value="'+s+'">'+lib(s)+'</option>').join('');
   const equipe=EQUIPE.map(c=>'<option>'+c+'</option>').join('');
   document.getElementById('f-c').innerHTML='<option value="">Tous les commerciaux</option><option value="__libre">Non attribués</option>'+equipe;
   document.getElementById('k-c').innerHTML='<option value="">Toute l\'équipe</option><option value="__moi">Mes fiches</option><option value="__libre">Non attribuées</option>';
@@ -572,7 +575,7 @@ function afficherTableau(p){
       ?`<label class="sr" for="com-${pr.id}">Commercial de ${esc(pr.nom)}</label><select id="com-${pr.id}" onchange="majCommercial('${pr.id}',this.value)"><option value="">— libre —</option>${EQUIPE.map(c=>'<option'+(pr.commercial===c?' selected':'')+'>'+c+'</option>').join('')}</select>`
       :esc(pr.commercial||'— libre —');
     const colStatut=ok
-      ?`${badge(pr.statut)}<br><label class="sr" for="st-${pr.id}">Statut de ${esc(pr.nom)}</label><select id="st-${pr.id}" style="margin-top:4px" onchange="majStatut('${pr.id}',this.value)">${STATUTS.map(s=>'<option'+(pr.statut===s?' selected':'')+'>'+s+'</option>').join('')}</select>`
+      ?`${badge(pr.statut)}<br><label class="sr" for="st-${pr.id}">Statut de ${esc(pr.nom)}</label><select id="st-${pr.id}" style="margin-top:4px" onchange="majStatut('${pr.id}',this.value)">${STATUTS.map(s=>'<option value="'+s+'"'+(pr.statut===s?' selected':'')+'>'+lib(s)+'</option>').join('')}</select>`
       :badge(pr.statut);
     const actions=ok
       ?`<div class="actions">
@@ -601,7 +604,7 @@ function majCompteurs(){
   html+=`<span class="compteur" style="background:#EAF5EF;color:var(--vert)">✉️ ${avecEmail} joignable${avecEmail>1?'s':''} par email</span>`;
   html+=`<span class="compteur" style="background:#FBF3EC;color:#8A4A20">📞 ${t-avecEmail} à appeler</span>`;
   ['Email envoyé','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Client','Contact KO'].forEach(s=>{
-    html+=`<span class="compteur" style="${COULEURS[s]}">${tous.filter(p=>p.statut===s).length} ${s}</span>`;
+    html+=`<span class="compteur" style="${COULEURS[s]}">${tous.filter(p=>p.statut===s).length} ${lib(s)}</span>`;
   });
   document.getElementById('compteurs').innerHTML=html;
 }
@@ -683,7 +686,7 @@ function afficherKanban(){
   const liste=tous.filter(p=>!f||(f==='__moi'?p.commercial===moi.nom:!p.commercial));
   k.innerHTML=STATUTS.map((s,i)=>{
     const fiches=liste.filter(p=>(p.statut||'Nouveau Lead')===s);
-    return `<section class="colonne" data-statut="${s}" aria-label="${s}, ${fiches.length} fiche(s)"
+    return `<section class="colonne" data-statut="${s}" aria-label="${lib(s)}, ${fiches.length} fiche(s)"
         ondragover="event.preventDefault();this.classList.add('survol')" ondragleave="this.classList.remove('survol')" ondrop="deposer(event,'${s}');this.classList.remove('survol')">
       <h2 class="col-tete"><span>${badge(s)}</span><span>${fiches.length}</span></h2>
       <div class="col-liste">${fiches.map(p=>fiche(p,i)).join('')||'<p style="font-size:0.75rem;color:var(--gris);padding:6px">—</p>'}</div>
