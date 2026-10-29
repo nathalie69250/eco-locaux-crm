@@ -321,7 +321,7 @@ function esc(t){return (t??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<
 function norm(t){return (t||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast vis '+type;clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast',3500);}
 // Libellés affichés en français : la valeur enregistrée en base ne change pas (les workflows n8n l'utilisent)
-const LIB={'Nouveau Lead':'Nouveau prospect','A contacter':'À contacter','RDV Planifié':'RDV planifié','Contact KO':'Sans suite'};
+const LIB={'A contacter':'À contacter','RDV Planifié':'RDV planifié','Contact KO':'Sans suite'};
 function lib(s){return LIB[s]||s;}
 function badge(s){return s?'<span class="badge-s" style="'+(COULEURS[s]||'')+'">'+esc(lib(s))+'</span>':'';}
 function maps(nom,adresse){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((nom||'')+' '+(adresse||''));}
