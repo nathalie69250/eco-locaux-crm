@@ -297,7 +297,9 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
    ===================================================================== */
 const SUPABASE_URL='https://jzyqvqxxxngxpxcdxrdt.supabase.co';
 const SUPABASE_CLE_PUBLIQUE='sb_publishable_PqftVeREd_FcFaXhdp7wWw_w_lRw4M-';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_CLE_PUBLIQUE);
+// Session gardée dans l'onglet seulement (sessionStorage) : fermer l'onglet ou le navigateur déconnecte.
+// Sur un poste partagé, le prochain utilisateur repasse donc toujours par l'écran de connexion.
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_CLE_PUBLIQUE,{auth:{storage:window.sessionStorage,persistSession:true}});
 
 const W={
   sourcing:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-sourcing',
