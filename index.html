@@ -203,7 +203,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
       <ol>
         <li><strong>Le site web du commerce</strong> : la page d'accueil et les pages liées (Contact, Mentions légales…).</li>
         <li><strong>Sa page Facebook</strong> (rubrique « À propos »), retrouvée par une recherche Google si le commerce n'a pas de site.</li>
-        <li><strong>Une vérification</strong> : le domaine de l'adresse trouvée doit pouvoir recevoir du courrier (✓ vérifié).</li>
+        <li><strong>Une vérification</strong> : l'adresse doit appartenir au commerce (pas à son agence web ou à son logiciel de commande), et Hunter confirme que la boîte existe (✓ boîte vérifiée).</li>
       </ol>
       <p>Quand aucune adresse n'est publiée nulle part (pas de site, pas de page Facebook, ou aucune adresse affichée), aucun outil ne peut l'inventer : la raison exacte est indiquée sur la fiche et le prospect est à <strong>contacter par téléphone ou en boutique</strong>. Les enseignes nationales (Picard, Paul…) sont signalées hors cible : la décision se prend au siège.</p>
     </details>
@@ -212,6 +212,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
       <select id="f-a" onchange="filtrer()" aria-label="Filtrer par activité"><option value="">Toutes les activités</option></select>
       <select id="f-z" onchange="filtrer()" aria-label="Filtrer par zone"><option value="">Toutes les zones</option></select>
       <select id="f-c" onchange="filtrer()" aria-label="Filtrer par commercial"><option value="">Tous les commerciaux</option></select>
+      <select id="f-e" onchange="filtrer()" aria-label="Filtrer par moyen de contact"><option value="">Email et téléphone</option><option value="email">✉️ Joignables par email</option><option value="tel">📞 À appeler</option></select>
     </div>
     <div class="tw">
       <table>
@@ -563,8 +564,8 @@ function buildFiltres(){
 }
 
 function filtrer(){
-  const fs=document.getElementById('f-s').value,fa=document.getElementById('f-a').value,fz=document.getElementById('f-z').value,fc=document.getElementById('f-c').value;
-  afficherTableau(tous.filter(p=>(!fs||p.statut===fs)&&(!fa||p.activite===fa)&&(!fz||p.zone===fz)&&(!fc||(fc==='__libre'?!p.commercial:p.commercial===fc))));
+  const fs=document.getElementById('f-s').value,fa=document.getElementById('f-a').value,fz=document.getElementById('f-z').value,fc=document.getElementById('f-c').value,fe=document.getElementById('f-e').value;
+  afficherTableau(tous.filter(p=>(!fs||p.statut===fs)&&(!fa||p.activite===fa)&&(!fz||p.zone===fz)&&(!fc||(fc==='__libre'?!p.commercial:p.commercial===fc))&&(!fe||(fe==='email'?!!p.email:!p.email))));
 }
 
 function afficherTableau(p){
