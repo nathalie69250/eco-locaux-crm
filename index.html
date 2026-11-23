@@ -311,8 +311,8 @@ const W={
   statut:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-statut',
   emails:'https://merignieux.app.n8n.cloud/webhook/eco-locaux-emails'   // W6 : recherche des emails manquants
 };
-const STATUTS=['Nouveau Lead','A contacter','Email envoyé','À relancer','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Contact KO','Client'];
-const COULEURS={'Nouveau Lead':'background:#E5E7EB;color:#4B5550','A contacter':'background:#DBEAFE;color:#1D4ED8','Email envoyé':'background:#BFDBFE;color:#1E40AF','À relancer':'background:#FEF3C7;color:#92400E','RDV Planifié':'background:#FEF3C7;color:#92400E','Diagnostic fait':'background:#EDE9FE;color:#6D28D9','Devis envoyé':'background:#EDE9FE;color:#6D28D9','Devis signé':'background:#EDE9FE;color:#6D28D9','Contact KO':'background:#FEE2E2;color:#B91C1C','Client':'background:#D1FAE5;color:#065F46'};
+const STATUTS=['Nouveau Lead','A contacter','Email envoyé','À relancer','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Sans suite','Client'];
+const COULEURS={'Nouveau Lead':'background:#E5E7EB;color:#4B5550','A contacter':'background:#DBEAFE;color:#1D4ED8','Email envoyé':'background:#BFDBFE;color:#1E40AF','À relancer':'background:#FEF3C7;color:#92400E','RDV Planifié':'background:#FEF3C7;color:#92400E','Diagnostic fait':'background:#EDE9FE;color:#6D28D9','Devis envoyé':'background:#EDE9FE;color:#6D28D9','Devis signé':'background:#EDE9FE;color:#6D28D9','Sans suite':'background:#FEE2E2;color:#B91C1C','Client':'background:#D1FAE5;color:#065F46'};
 const EQUIPE=['Marc D.','Sophie L.','Antoine R.','Julie M.','Pierre B.'];
 
 // moi = { nom, role } de la personne connectée ; tous = prospects chargés
@@ -325,7 +325,7 @@ function esc(t){return (t??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<
 function norm(t){return (t||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast vis '+type;clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast',3500);}
 // Libellés affichés en français : la valeur enregistrée en base ne change pas (les workflows n8n l'utilisent)
-const LIB={'A contacter':'À contacter','RDV Planifié':'RDV planifié','Contact KO':'Sans suite'};
+const LIB={'A contacter':'À contacter','RDV Planifié':'RDV planifié'};
 function lib(s){return LIB[s]||s;}
 function badge(s){return s?'<span class="badge-s" style="'+(COULEURS[s]||'')+'">'+esc(lib(s))+'</span>':'';}
 function maps(nom,adresse){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((nom||'')+' '+(adresse||''));}
@@ -607,7 +607,7 @@ function majCompteurs(){
   const avecEmail=tous.filter(p=>p.email).length;
   html+=`<span class="compteur" style="background:#EAF5EF;color:var(--vert)">✉️ ${avecEmail} joignable${avecEmail>1?'s':''} par email</span>`;
   html+=`<span class="compteur" style="background:#FBF3EC;color:#8A4A20">📞 ${t-avecEmail} à appeler</span>`;
-  ['Email envoyé','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Client','Contact KO'].forEach(s=>{
+  ['Email envoyé','RDV Planifié','Diagnostic fait','Devis envoyé','Devis signé','Client','Sans suite'].forEach(s=>{
     html+=`<span class="compteur" style="${COULEURS[s]}">${tous.filter(p=>p.statut===s).length} ${lib(s)}</span>`;
   });
   document.getElementById('compteurs').innerHTML=html;
