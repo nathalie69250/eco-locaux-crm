@@ -47,6 +47,9 @@ nav{background:var(--surface);border-bottom:1px solid var(--bordure);padding:0 2
 .btn.gris{background:#E5E7EB;color:#4B5550;border:none}
 .btn.gris:hover{background:#D1D5DB}
 .btn.petit{font-size:0.76rem;padding:5px 10px}
+.btn.danger{background:#B91C1C;color:#fff;border:none}
+.btn.danger:hover{background:#991B1B}
+.btn.danger:disabled{background:#C9BFB3}
 .sp{width:13px;height:13px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .msg{padding:9px 13px;border-radius:8px;font-size:0.85rem;margin-bottom:14px;display:none;line-height:1.5}
@@ -282,6 +285,19 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,te
     <div class="modale-actions">
       <button class="btn sec" onclick="fermerNote()">Annuler</button>
       <button class="btn" id="btn-note" onclick="validerNote()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Fenêtre « Supprimer la fiche » (demande STOP / droit à l'effacement) ---------- -->
+<div class="fond-modale" id="fsup">
+  <div class="modale" role="alertdialog" aria-modal="true" aria-labelledby="titre-sup" aria-describedby="sup-txt" style="max-width:440px">
+    <h2 id="titre-sup">🗑 Supprimer la fiche</h2>
+    <p id="sup-txt" style="font-size:0.9rem;margin-bottom:12px">Supprimer définitivement la fiche de <strong id="sup-nom"></strong> ? Cette action est irréversible : toutes les données du prospect (coordonnées, notes, brouillon) sont effacées.</p>
+    <div class="m-statut" id="sup-st" role="status" aria-live="polite"></div>
+    <div class="modale-actions">
+      <button class="btn sec" id="sup-annuler" onclick="fermerSuppr()">Annuler</button>
+      <button class="btn danger" id="btn-sup" onclick="validerSuppr()">Supprimer définitivement</button>
     </div>
   </div>
 </div>
@@ -585,6 +601,7 @@ function afficherTableau(p){
       ?`<div class="actions">
           ${pr.email?`<button class="btn petit ${contactable?'':'gris'}" onclick="ouvrir('${pr.id}')">${contactable?'✉️ Contacter':'📧 Recontacter'}</button>`:'<span style="font-size:0.75rem;color:var(--gris)">📞 À appeler</span>'}
           <button class="btn petit sec" onclick="ouvrirNote('${pr.id}')">📝 Notes${pr.notes?' •':''}</button>
+          <button class="btn petit sec" aria-label="Supprimer la fiche de ${esc(pr.nom)}" onclick="ouvrirSuppr('${pr.id}')">🗑 Supprimer</button>
         </div>`
       :`<span style="font-size:0.76rem">🔒 Suivi par ${esc(pr.commercial)}</span>`;
     return `<tr class="${ok?'':'verrou'}">
@@ -680,6 +697,32 @@ async function validerNote(){
   }
 }
 
+/* ---------- Suppression d'une fiche (réponse STOP d'un prospect) ----------
+   Le serveur (W5) vérifie les droits : le directeur peut tout supprimer, un commercial
+   seulement les fiches qui lui sont attribuées ou qui sont libres. */
+let supprEnCours=null;
+function ouvrirSuppr(id){
+  supprEnCours=tous.find(x=>x.id===id);if(!supprEnCours)return;
+  document.getElementById('sup-nom').textContent=supprEnCours.nom||'ce prospect';
+  document.getElementById('sup-st').className='m-statut';
+  document.getElementById('btn-sup').disabled=false;
+  document.getElementById('fsup').classList.add('ouverte');
+  document.getElementById('sup-annuler').focus();   // le focus part sur « Annuler » : action irréversible
+}
+function fermerSuppr(){document.getElementById('fsup').classList.remove('ouverte');supprEnCours=null;}
+async function validerSuppr(){
+  if(!supprEnCours)return;
+  const p=supprEnCours,btn=document.getElementById('btn-sup');
+  btn.disabled=true;
+  try{
+    const rep=await appeler(W.statut,{id:p.id,action:'supprimer'});
+    const d=await rep.json().catch(()=>({}));
+    if(!rep.ok||!d.supprime){toast(d.erreur||'Suppression refusée.','ko');btn.disabled=false;return;}
+    tous=tous.filter(x=>x.id!==p.id);
+    fermerSuppr();rafraichirVues();toast('Fiche supprimée : '+(p.nom||''),'ok');
+  }catch(e){if(e.message!=='401')toast('Impossible de joindre le serveur.','ko');btn.disabled=false;}
+}
+
 /* =====================================================================
    4. PIPELINE (Kanban) : une colonne par statut.
       Glisser-déposer à la souris, flèches ◀ ▶ au clavier.
@@ -723,10 +766,11 @@ function deposer(e,statut){
 }
 
 /* ---------- Fermeture des fenêtres : clic sur le fond ou touche Échap ---------- */
-[['fm',fermer],['frdv',fermerRdv],['fnote',fermerNote]].forEach(([id,f])=>document.getElementById(id).addEventListener('click',function(e){if(e.target===this)f();}));
+[['fm',fermer],['frdv',fermerRdv],['fnote',fermerNote],['fsup',fermerSuppr]].forEach(([id,f])=>document.getElementById(id).addEventListener('click',function(e){if(e.target===this)f();}));
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  if(document.getElementById('frdv').classList.contains('ouverte'))fermerRdv();
+  if(document.getElementById('fsup').classList.contains('ouverte'))fermerSuppr();
+  else if(document.getElementById('frdv').classList.contains('ouverte'))fermerRdv();
   else if(document.getElementById('fnote').classList.contains('ouverte'))fermerNote();
   else if(document.getElementById('fm').classList.contains('ouverte'))fermer();
 });
