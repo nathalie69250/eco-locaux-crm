@@ -642,7 +642,11 @@ async function envoyerMaj(corps){
 
 async function majStatut(id,s){
   const p=tous.find(x=>x.id===id);if(!p)return;
-  if(s==='RDV Planifié'){ouvrirRdv(id);return;}   // la date est demandée d'abord
+  // La date de RDV n'est redemandée qu'en avançant vers « RDV Planifié ».
+  // En reculant (correction d'une erreur depuis une étape plus avancée), on
+  // remet simplement le statut, sans rouvrir le pop-up de date.
+  const iOld=STATUTS.indexOf(p.statut||'Nouveau Lead'),iNew=STATUTS.indexOf(s);
+  if(s==='RDV Planifié'&&iNew>iOld){ouvrirRdv(id);return;}
   if(await envoyerMaj({id,statut:s})){
     p.statut=s;if(!p.commercial&&moi.role==='commercial')p.commercial=moi.nom;
     toast('Statut : '+s,'ok');
@@ -668,14 +672,23 @@ function ouvrirRdv(id){
 }
 function fermerRdv(){document.getElementById('frdv').classList.remove('ouverte');rdvEnCours=null;rafraichirVues();}
 async function validerRdv(){
+  // Capturé dans une variable locale au tout début : si l'utilisateur ferme le
+  // pop-up (Échap, clic hors fenêtre) pendant que la requête est en cours,
+  // rdvEnCours (variable globale) passe à null, mais ça ne fait plus planter
+  // la suite de cette fonction, qui continue de travailler sur sa copie locale.
+  const cible=rdvEnCours;
+  if(!cible)return;
   const v=document.getElementById('rdv-date').value,st=document.getElementById('rdv-st');
   if(!v){st.textContent='Choisissez la date et l\'heure du rendez-vous.';st.className='m-statut vis ko';return;}
-  if(new Date(v)<new Date()){st.textContent='La date du rendez-vous est déjà passée.';st.className='m-statut vis ko';return;}
-  const iso=new Date(v).toISOString();
-  if(rdvEnCours&&await envoyerMaj({id:rdvEnCours.id,statut:'RDV Planifié',date_rdv:iso})){
-    rdvEnCours.statut='RDV Planifié';rdvEnCours.date_rdv=iso;
-    if(!rdvEnCours.commercial&&moi.role==='commercial')rdvEnCours.commercial=moi.nom;
-    toast('RDV planifié : '+fmtRdv(iso).replace('📅 ',''),'ok');fermerRdv();
+  const d=new Date(v);
+  if(isNaN(d.getTime())){st.textContent='Date ou heure invalide : vérifiez le format.';st.className='m-statut vis ko';return;}
+  if(d<new Date()){st.textContent='La date du rendez-vous est déjà passée.';st.className='m-statut vis ko';return;}
+  const iso=d.toISOString();
+  if(await envoyerMaj({id:cible.id,statut:'RDV Planifié',date_rdv:iso})){
+    cible.statut='RDV Planifié';cible.date_rdv=iso;
+    if(!cible.commercial&&moi.role==='commercial')cible.commercial=moi.nom;
+    toast('RDV planifié : '+fmtRdv(iso).replace('📅 ',''),'ok');
+    if(rdvEnCours===cible)fermerRdv();else rafraichirVues();
   }
 }
 
